@@ -24,62 +24,16 @@ The keys in the key-pair must have certain characteristics in order to be viable
 
 The DH method is mostly used to secretly agree on a shared key between the parties envolved in a data exchange. Once the shared key is established, it is further used to encrypt the messages exchanged between parties because symmetric encryption is a much simpler process and through this method, it's biggest flaw - sharing the secret - is addressed
 
-#### **Generating a Private Key using openssl**
+## Digital Signatures
 
-To create a Private Key using OpenSSL, use this command:
+When A wants to communicate with B the public and private keys of each can encrypt the messages between them but the identity of A and B needs to be proved as well.
 
-```
-openssl genrsa [NUMBITS] [-out OUTPUT_FILE] [-passout PASSOUT] [-des|des3|-aes128|aes192|aes256|...]
+The digital signage process can be used as a proof of identity. A will encrypt its credentials with its private key. Only its' public key can decrypt this. Then A will use the public key of B to encrypt the resulting message. This part can only be decrypted by B's private key.
 
-NUMBITS = Size of the key. Defaults to 2048.-out 
-OUTPUT_FILE = Saves the key to OUTPUT_FILE-passout 
-PASSOUT = The key in the OUTPUT_FILE can only be read if the PASSPHRASE is porovided.
-If passout is not provided then the user will be asked to enter it. 
-Some common methods to provide the PASSPHRASE are:
-    pass:PASSPHRASE - provides the passphrase as argument
-    file:PASSFILE - provides a file that contains the passphrase
-    stdin - asks the user to provide the passphrase
--des|des3|aes128|aes192|aes256|... = Select the method for file encryption.
-```
+When B receives the message it uses it's private key to decrypt but it will get an unreadable message. B then tries to decrypt using the public key of A and this way it can get to the original message.
 
-The passphrase is actually used for a symmetric encryption that adds a layer of protection for the private key.
+<figure><img src=".gitbook/assets/digital_signatures.drawio.png" alt=""><figcaption><p>Digital Signatures</p></figcaption></figure>
 
-Instead of `openssl genrsa ...` command you should use the newer and more versatile `openssl genpkey -algorithm RSA ...` command. It is meant to suport multiple key types, not just RSA but otherwise follows the same idea while bringin several improvements and more secure defaults.
+## Certificate Authorities
 
-When looking at an encrypted private key you should see that it includes information about the type of encryption that is used. That information is not present if the key is not protected.
-
-```
------BEGIN RSA PRIVATE KEY-----
-Proc-Type: 4,ENCRYPTED
-DEK-Info: AES-128-CBC,1C65746D94033797A4EE53B3FCC8FAF6
-4aGNgrMRrgFPlZbHFB9JlPUjhu+sCSUL7VSukEt/slhXpOhpSAKM1b8qdg+25E0F
-+kbiijjJcssWiyV+eTm6d/Qemn95DhGhi9H3ffstdziKb6VaKUr8Tfrfg6egsLyK
-[...]
-```
-
-To read the key from an encrypted file you can use:
-
-```
-openssl rsa -in INPUT_FILE [-passin PASSIN] [-out OUTFILE] [-passout PASSOUT]
-
--passin PASSIN = provide the passphrases needed to read the private key. Follows the same format as PASSOUT
--out OUTFILE = when used it outputs the private key to a file. When it is not used the output will be to screen (stdout)
--passout PASSOUT = privide the passphtrase for the output file.
-```
-
-#### **Generating a Public Key using openssl**
-
-The same command can be used to generate a public key based on the private key:
-
-```
-openssl rsa -in INPUT_FILE [-passin PASSIN] -pubout [-out OUTFILE]
--passin PASSIN = provide the passphrases needed to read the private key. Follows the same format as PASSOUT
--out OUTFILE = when used it outputs the private key to a file. When it is not used the output will be to screen (stdout)
--pubout = will output the Public Key associated with the input private key
-```
-
-#### **Other methods of generating keys**
-
-OpenSSL is not the only tool used to generate keys but it is probably the most versatile.
-
-One of them is `ssh-keygen`, described [here](broken-reference).
+We now have a mechanism to encrypt messages and to authenticate each side but how can we make sure that it's not someone else providing it's own public key instead of one of the intended participants. We can have a mechanism to pre-share the public key but that can have a lot of weaknesses or we can use a thirdy party service that both sides trust. This thirdy party service is called a Certificate Authority (CA)
